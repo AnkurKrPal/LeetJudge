@@ -29,6 +29,14 @@ export default function Navbar() {
             {link.name}
           </Link>
         ))}
+        {user?.role === 'ADMIN' && (
+          <Link
+            href="/admin"
+            className={`${styles.link} ${pathname === '/admin' ? styles.active : ''}`}
+          >
+            Admin Panel
+          </Link>
+        )}
       </div>
       <div className={styles.authLinks}>
         {loading ? null : user ? (
