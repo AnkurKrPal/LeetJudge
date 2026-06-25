@@ -6,14 +6,15 @@ import redisConnection from '../config/redis.js';
 export const apiLimiter = process.env.NODE_ENV === 'test' 
     ? (req, res, next) => next() 
     : rateLimit({
-        windowMs: process.env.RATE_LIMIT_GLOBAL_WINDOW_MS || 15 * 60 * 1000,
-        max: process.env.RATE_LIMIT_GLOBAL_MAX || 100,
+        windowMs: parseInt(process.env.RATE_LIMIT_GLOBAL_WINDOW_MS || '900000', 10),
+        max: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX || '100', 10),
         standardHeaders: true,
         legacyHeaders: false,
         message: { error: 'Too many requests from this IP, please try again later' },
         store: new RedisStore({
             // @ts-expect-error - Known issue with @types/ioredis
             sendCommand: (...args) => redisConnection.call(...args),
+            prefix: 'rl_global:',
         }),
     });
 
@@ -21,13 +22,14 @@ export const apiLimiter = process.env.NODE_ENV === 'test'
 export const strictLimiter = process.env.NODE_ENV === 'test'
     ? (req, res, next) => next()
     : rateLimit({
-        windowMs: process.env.RATE_LIMIT_STRICT_WINDOW_MS || 5 * 60 * 1000,
-        max: process.env.RATE_LIMIT_STRICT_MAX || 20,
+        windowMs: parseInt(process.env.RATE_LIMIT_STRICT_WINDOW_MS || '300000', 10),
+        max: parseInt(process.env.RATE_LIMIT_STRICT_MAX || '20', 10),
         standardHeaders: true,
         legacyHeaders: false,
         message: { error: 'Too many requests, please try again later' },
         store: new RedisStore({
             // @ts-expect-error
             sendCommand: (...args) => redisConnection.call(...args),
+            prefix: 'rl_strict:',
         }),
     });

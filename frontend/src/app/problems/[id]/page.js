@@ -11,7 +11,7 @@ import DifficultyBadge from '../../components/DifficultyBadge';
 import ClickableProblemTag from '../../components/ClickableProblemTag';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
-import AiAnalysisSection from '../../components/AiAnalysisSection';
+import SubmissionDetailView from '../../components/SubmissionDetailView';
 
 // Language IDs must match backend models/language.js
 const LANGUAGES = [
@@ -241,10 +241,15 @@ export default function ProblemWorkspace() {
                 )}
               </div>
               <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   <DifficultyBadge difficulty={problem.difficulty} />
                   <span style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Time Limit: {problem.timelimit} ms</span>
                   <span style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Memory Limit: {Math.round(problem.memorylimit / 1024)} MB</span>
+                  {(problem.total_submissions != null && problem.total_submissions > 0) && (
+                    <span style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                      Accepted: <strong style={{ color: 'var(--status-accepted)' }}>{problem.accepted_submissions}</strong> / {problem.total_submissions} ({Math.round((problem.accepted_submissions / problem.total_submissions) * 100)}%)
+                    </span>
+                  )}
                 </div>
                 {problem.tags && problem.tags.length > 0 && (
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
@@ -301,44 +306,7 @@ export default function ProblemWorkspace() {
                   {loadingSubmissionDetail ? (
                     <div style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>Loading submission...</div>
                   ) : selectedSubmission ? (
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--surface)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
-                        <div>
-                          <div style={{ fontSize: '1.125rem', fontWeight: '600', color: getVerdictStyle(selectedSubmission.verdict).color, marginBottom: '0.25rem' }}>
-                            {selectedSubmission.verdict?.replace(/_/g, ' ')}
-                          </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            {LANGUAGES.find(l => l.id === selectedSubmission.lang)?.name || `Lang ${selectedSubmission.lang}`} • {new Date(selectedSubmission.timestamp || selectedSubmission.createdAt).toLocaleString()}
-                          </div>
-                        </div>
-                        {selectedSubmission.execution_time_ms != null && (
-                          <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            <div>{selectedSubmission.execution_time_ms} ms</div>
-                            {selectedSubmission.memory_used_kb != null && <div>{Math.round(selectedSubmission.memory_used_kb / 1024)} MB</div>}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div style={{ marginBottom: '1.5rem' }}>
-                        <AiAnalysisSection submissionId={selectedSubmissionId} />
-                      </div>
-
-                      {selectedSubmission.verdict_message && (
-                        <div style={{ marginBottom: '1.5rem' }}>
-                          <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Message</h4>
-                          <pre style={{ padding: '0.75rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', fontSize: '0.75rem', overflowX: 'auto', color: 'var(--status-wrong)' }}>
-                            {selectedSubmission.verdict_message}
-                          </pre>
-                        </div>
-                      )}
-
-                      <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Code</h4>
-                      <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                        <pre style={{ margin: 0, padding: '1rem', fontSize: '0.8rem', fontFamily: 'var(--font-code)', backgroundColor: '#1e1e1e', color: '#d4d4d4', overflowX: 'auto' }}>
-                          {selectedSubmission.code}
-                        </pre>
-                      </div>
-                    </div>
+                    <SubmissionDetailView submission={selectedSubmission} isFullScreen={false} />
                   ) : (
                     <div style={{ color: 'var(--status-wrong)' }}>Failed to load submission.</div>
                   )}
