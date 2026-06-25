@@ -11,7 +11,8 @@ export const signup = async (req, res) => {
         const newUser = await signupService({ name, username, email, password });
         res.status(201).json({ message: "User registered successfully", user: newUser });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Signup Error:', error);
+        res.status(400).json({ error: error.message?.includes('already exists') ? error.message : "Signup failed due to invalid data or internal error" });
     }
 };
 
@@ -27,7 +28,8 @@ export const login = async (req, res) => {
         const { user, token } = await loginService(email, password, req.ip, userAgent);
         res.status(200).json({ message: "Login successful", user, token });
     } catch (error) {
-        res.status(401).json({ error: error.message });
+        console.error('Login Error:', error);
+        res.status(401).json({ error: "Invalid credentials or login failed" });
     }
 };
 

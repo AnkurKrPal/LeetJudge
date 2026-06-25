@@ -17,6 +17,7 @@ export const verifyOtp = async (req, res) => {
         await otpService.verifyOtp(email, otp);
         res.status(200).json({ message: "OTP verified successfully" });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('OTP Verification Error:', error);
+        res.status(400).json({ error: "Invalid or expired OTP" });
     }
 };
