@@ -8,9 +8,12 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import MarkdownEditor from '../../components/MarkdownEditor';
 import ProblemGuidelines from '../../components/ProblemGuidelines';
+import TagSelector from '../../components/TagSelector';
+import { useProblemTags } from '../../contexts/ProblemTagsContext';
 
 export default function CreateProblem() {
   const { user, loading: authLoading } = useAuth();
+  const { tags: allowedTags, loading: tagsLoading } = useProblemTags();
   const router = useRouter();
 
   const [title, setTitle] = useState('');
@@ -18,7 +21,9 @@ export default function CreateProblem() {
   const [difficulty, setDifficulty] = useState('EASY');
   const [timelimit, setTimelimit] = useState(1000);
   const [memorylimit, setMemorylimit] = useState(262144);
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState([]);
+  const [editorial, setEditorial] = useState('');
+  const [isEditorialVisible, setIsEditorialVisible] = useState(true);
   const [testCases, setTestCases] = useState([{ input: '', output: '' }]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -26,6 +31,7 @@ export default function CreateProblem() {
   const DRAFT_KEY = 'leetjudge_create_problem_draft';
 
   useEffect(() => {
+    if (tagsLoading) return;
     const saved = localStorage.getItem(DRAFT_KEY);
     if (saved) {
       try {
@@ -35,18 +41,26 @@ export default function CreateProblem() {
         if (parsed.difficulty) setDifficulty(parsed.difficulty);
         if (parsed.timelimit) setTimelimit(parsed.timelimit);
         if (parsed.memorylimit) setMemorylimit(parsed.memorylimit);
-        if (parsed.tags) setTags(parsed.tags);
+        if (parsed.editorial !== undefined) setEditorial(parsed.editorial);
+        if (parsed.isEditorialVisible !== undefined) setIsEditorialVisible(parsed.isEditorialVisible);
+        if (parsed.tags) {
+          if (Array.isArray(parsed.tags)) {
+            setTags(parsed.tags.filter((t) => allowedTags.includes(t)));
+          } else if (typeof parsed.tags === 'string') {
+            setTags(parsed.tags.split(',').map((t) => t.trim()).filter((t) => allowedTags.includes(t)));
+          }
+        }
         if (parsed.testCases) setTestCases(parsed.testCases);
       } catch (e) {
         console.error("Failed to load draft", e);
       }
     }
-  }, []);
+  }, [tagsLoading, allowedTags]);
 
   useEffect(() => {
-    const draft = { title, description, difficulty, timelimit, memorylimit, tags, testCases };
+    const draft = { title, description, difficulty, timelimit, memorylimit, tags, testCases, editorial, isEditorialVisible };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  }, [title, description, difficulty, timelimit, memorylimit, tags, testCases]);
+  }, [title, description, difficulty, timelimit, memorylimit, tags, testCases, editorial, isEditorialVisible]);
 
   if (authLoading) {
     return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading...</div>;
@@ -87,7 +101,9 @@ export default function CreateProblem() {
         difficulty,
         timelimit: Number(timelimit),
         memorylimit: Number(memorylimit),
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags,
+        editorial,
+        is_editorial_visible: isEditorialVisible,
       });
 
       const problem = problemRes.data.problem;
@@ -137,6 +153,29 @@ export default function CreateProblem() {
           />
         </div>
 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label htmlFor="editorial" style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-main)' }}>
+              Editorial (Optional Markdown)
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={isEditorialVisible} 
+                onChange={(e) => setIsEditorialVisible(e.target.checked)} 
+                style={{ cursor: 'pointer' }}
+              />
+              Visible (Uncheck during contests)
+            </label>
+          </div>
+          <MarkdownEditor 
+            value={editorial}
+            onChange={setEditorial}
+            placeholder="Write the editorial or solution explanation here."
+            storageKey={DRAFT_KEY + '_editorial'}
+          />
+        </div>
+
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label htmlFor="difficulty" style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-main)', display: 'block', marginBottom: '0.5rem' }}>Difficulty</label>
@@ -181,7 +220,7 @@ export default function CreateProblem() {
           </div>
         </div>
 
-        <Input label="Tags (comma-separated)" id="tags" type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="arrays, hash-map, two-pointers" />
+        <TagSelector selectedTags={tags} onChange={setTags} />
 
         {/* Test Cases */}
         <div style={{ marginBottom: '1.5rem' }}>

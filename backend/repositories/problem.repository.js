@@ -8,7 +8,9 @@ export const create = async ({
     difficulty,
     createdBy,
     timelimit,
-    memorylimit
+    memorylimit,
+    editorial,
+    isEditorialVisible = true
 }) => {
     const result = await query(
         `
@@ -20,9 +22,11 @@ export const create = async ({
             difficulty,
             created_by,
             timelimit,
-            memorylimit
+            memorylimit,
+            editorial,
+            is_editorial_visible
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
         `,
         [
@@ -32,7 +36,9 @@ export const create = async ({
             difficulty,
             createdBy,
             timelimit,
-            memorylimit
+            memorylimit,
+            editorial,
+            isEditorialVisible
         ]
     );
 
@@ -42,9 +48,12 @@ export const create = async ({
 export const findById = async (problemId) => {
     const result = await query(
         `
-        SELECT *
-        FROM problems
-        WHERE id = $1
+        SELECT 
+            p.*,
+            (SELECT COUNT(*) FROM submissions s WHERE s.problem_id = p.id) as total_submissions,
+            (SELECT COUNT(*) FROM submissions s WHERE s.problem_id = p.id AND s.verdict = 'ACCEPTED') as accepted_submissions
+        FROM problems p
+        WHERE p.id = $1
         `,
         [problemId]
     );
@@ -56,15 +65,18 @@ export const findAll = async (limit, offset) => {
     const result = await query(
         `
         SELECT
-            id,
-            title,
-            difficulty,
-            tags,
-            timelimit,
-            memorylimit,
-            created_at
-        FROM problems
-        ORDER BY created_at DESC
+            p.id,
+            p.title,
+            p.difficulty,
+            p.tags,
+            p.timelimit,
+            p.memorylimit,
+            p.is_editorial_visible,
+            p.created_at,
+            (SELECT COUNT(*) FROM submissions s WHERE s.problem_id = p.id) as total_submissions,
+            (SELECT COUNT(*) FROM submissions s WHERE s.problem_id = p.id AND s.verdict = 'ACCEPTED') as accepted_submissions
+        FROM problems p
+        ORDER BY p.created_at DESC
         LIMIT $1 OFFSET $2
         `,
         [limit, offset]
@@ -73,15 +85,15 @@ export const findAll = async (limit, offset) => {
     return result.rows;
 };
 
-export const update = async (problemId, { title, description, tags, difficulty, timelimit, memorylimit }) => {
+export const update = async (problemId, { title, description, tags, difficulty, timelimit, memorylimit, editorial, isEditorialVisible }) => {
     const result = await query(
         `
         UPDATE problems
-        SET title = $1, description = $2, tags = $3, difficulty = $4, timelimit = $5, memorylimit = $6
-        WHERE id = $7
+        SET title = $1, description = $2, tags = $3, difficulty = $4, timelimit = $5, memorylimit = $6, editorial = $7, is_editorial_visible = $8
+        WHERE id = $9
         RETURNING *
         `,
-        [title, description, tags, difficulty, timelimit, memorylimit, problemId]
+        [title, description, tags, difficulty, timelimit, memorylimit, editorial, isEditorialVisible, problemId]
     );
     return result.rows[0];
 };

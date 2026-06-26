@@ -117,3 +117,16 @@ export const updateVerdict = async (
 
     return result.rows[0];
 };
+
+export const updateAiAnalysis = async (submissionId, aiAnalysis) => {
+    const result = await query(
+        `
+        UPDATE submissions
+        SET ai_analysis = $1
+        WHERE id = $2
+        RETURNING *
+        `,
+        [aiAnalysis, submissionId]
+    );
+    return result.rows[0];
+};

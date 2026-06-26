@@ -2,6 +2,7 @@ import * as problemService from '../services/problem.service.js';
 import { uploadImageService, deleteImageService } from '../services/storage.service.js';
 import { clearCache } from '../middleware/cache.middleware.js';
 import { findByEmail } from '../repositories/account.repository.js';
+import { getAllTags } from '../models/tag.js';
 
 export const getProblems = async (req, res) => {
     try {
@@ -13,9 +14,13 @@ export const getProblems = async (req, res) => {
     }
 };
 
+export const getTags = async (req, res) => {
+    res.status(200).json({ tags: getAllTags() });
+};
+
 export const createProblem = async (req, res) => {
     try {
-        const { title, description, tags, difficulty, timelimit, memorylimit } = req.body;
+        const { title, description, tags, difficulty, timelimit, memorylimit, editorial, is_editorial_visible } = req.body;
         const createdBy = req.user.id;
 
         if (!title || !description || !difficulty || !timelimit || !memorylimit) {
@@ -38,7 +43,7 @@ export const createProblem = async (req, res) => {
         }
 
         const newProblem = await problemService.createProblemService({
-            title, description, tags, difficulty, createdBy, timelimit, memorylimit
+            title, description, tags, difficulty, createdBy, timelimit, memorylimit, editorial, isEditorialVisible: is_editorial_visible
         });
 
         // Invalidate cache
@@ -107,7 +112,7 @@ export const updateProblem = async (req, res) => {
             return res.status(403).json({ error: "Forbidden: You don't have permission to edit this problem" });
         }
 
-        const { title, description, tags, difficulty, timelimit, memorylimit } = req.body;
+        const { title, description, tags, difficulty, timelimit, memorylimit, editorial, is_editorial_visible } = req.body;
         
         // Basic validation
         if (!title || !description || !difficulty || !timelimit || !memorylimit) {
@@ -115,7 +120,7 @@ export const updateProblem = async (req, res) => {
         }
 
         const updatedProblem = await problemService.updateProblemService(problemId, {
-            title, description, tags, difficulty, timelimit, memorylimit
+            title, description, tags, difficulty, timelimit, memorylimit, editorial, isEditorialVisible: is_editorial_visible
         });
 
         // Invalidate cache

@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getProblems, getProblemById, createProblem, addTestCases, updateProblem, deleteProblem, addEditor, uploadImage, deleteImage } from '../controllers/problem.controller.js';
+import { getProblems, getProblemById, getTags, createProblem, addTestCases, updateProblem, deleteProblem, addEditor, uploadImage, deleteImage } from '../controllers/problem.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 import { validateCreateProblem, validateTestCases } from '../validators/problem.validator.js';
 import { cacheMiddleware } from '../middleware/cache.middleware.js';
@@ -9,6 +9,7 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/", cacheMiddleware(process.env.CACHE_TTL_PROBLEMS_LIST || 60), getProblems);
+router.get("/tags", getTags);
 router.post("/", authenticate, requireRole(['ADMIN', 'PROBLEM_SETTER']), validateCreateProblem, createProblem);
 
 // Image upload and management routes (MUST be before /:problemId routes)

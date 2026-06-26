@@ -68,3 +68,26 @@ export const getUserSubmissionsForProblem = async (req, res) => {
         res.status(500).json({ error: "An internal server error occurred" });
     }
 };
+
+export const getAiAnalysis = async (req, res) => {
+    try {
+        const { submissionsId } = req.params;
+        const submission = await submissionService.getSubmissionByIdService(submissionsId);
+
+        if (!submission) {
+            return res.status(404).json({ error: "Submission not found" });
+        }
+
+        // Ensure users can only analyze their own submissions unless they are admin
+        if (submission.user_id !== req.user.id && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ error: "Forbidden: Not your submission" });
+        }
+
+        const analysis = await submissionService.getAiAnalysisForSubmissionService(submissionsId);
+        res.status(200).json({ analysis });
+    } catch (error) {
+        console.error(error);
+        const status = error.message.includes('still being judged') ? 400 : 500;
+        res.status(status).json({ error: error.message || "An internal server error occurred" });
+    }
+};

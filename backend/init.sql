@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS problems (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
+    editorial TEXT,
+    is_editorial_visible BOOLEAN DEFAULT true,
     tags TEXT[] DEFAULT '{}',
     difficulty difficulty_enum NOT NULL,
     created_by UUID REFERENCES accounts(id) ON DELETE SET NULL,
@@ -104,7 +106,8 @@ CREATE TABLE IF NOT EXISTS submissions (
     memory_used_kb INT,
     error_test_case INT,
     expected_output TEXT,
-    actual_output TEXT
+    actual_output TEXT,
+    ai_analysis JSONB
 );
 
 -- Indexes for fast lookup

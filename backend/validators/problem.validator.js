@@ -1,8 +1,27 @@
-// Validates problem creation and test case payloads
 import Difficulty from '../models/difficulty.js';
+import { getAllTags } from '../models/tag.js';
+
+const validateTags = (tags) => {
+    if (tags === undefined || tags === null) {
+        return null;
+    }
+
+    if (!Array.isArray(tags)) {
+        return 'Tags must be an array';
+    }
+
+    const validTags = getAllTags();
+    for (const tag of tags) {
+        if (!validTags.includes(tag)) {
+            return `Invalid tag: ${tag}. Must be one of: ${validTags.join(', ')}`;
+        }
+    }
+
+    return null;
+};
 
 export const validateCreateProblem = (req, res, next) => {
-    const { title, description, difficulty, timelimit, memorylimit } = req.body;
+    const { title, description, difficulty, timelimit, memorylimit, tags } = req.body;
 
     if (!title || !description || !difficulty || !timelimit || !memorylimit) {
         return res.status(400).json({
@@ -24,6 +43,11 @@ export const validateCreateProblem = (req, res, next) => {
 
     if (typeof memorylimit !== 'number' || memorylimit <= 0) {
         return res.status(400).json({ error: 'memorylimit must be a positive number (KB)' });
+    }
+
+    const tagError = validateTags(tags);
+    if (tagError) {
+        return res.status(400).json({ error: tagError });
     }
 
     next();
