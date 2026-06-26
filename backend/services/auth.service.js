@@ -64,24 +64,7 @@ export const loginService = async (email, password, ip, userAgent) => {
     delete user.password_hash;
     
     // Send login alert email asynchronously
-    const time = new Date().toLocaleString();
-    
-    // Attempt geolocation
-    getLocationFromIP(ip).then(loc => {
-        // Strip IPv4 mapping prefix
-        let cleanIp = ip || 'Unknown';
-        if (cleanIp.startsWith('::ffff:')) {
-            cleanIp = cleanIp.substring(7);
-        }
-
-        // Only display location if it's meaningful
-        const isUnknown = loc === 'Unknown Region' || loc === 'Local Network (Development)';
-        const locationDisplay = isUnknown ? null : loc;
-
-        sendLoginAlertEmail(user.email, cleanIp, locationDisplay, userAgent, time).catch(err => {
-            console.error('Failed to send login alert email:', err.message);
-        });
-    });
+    sendLoginAlert(user, ip, userAgent);
 
     return { user, token };
 };
@@ -107,16 +90,12 @@ const generateUniqueUsername = async (email) => {
 
 const sendLoginAlert = (user, ip, userAgent) => {
     const time = new Date().toLocaleString();
-    getLocationFromIP(ip).then(loc => {
-        let cleanIp = ip || 'Unknown';
-        if (cleanIp.startsWith('::ffff:')) {
-            cleanIp = cleanIp.substring(7);
-        }
-        const isUnknown = loc === 'Unknown Region' || loc === 'Local Network (Development)';
-        const locationDisplay = isUnknown ? null : loc;
-        sendLoginAlertEmail(user.email, cleanIp, locationDisplay, userAgent, time).catch(err => {
-            console.error('Failed to send login alert email:', err.message);
-        });
+    let cleanIp = ip || 'Unknown';
+    if (cleanIp.startsWith('::ffff:')) {
+        cleanIp = cleanIp.substring(7);
+    }
+    sendLoginAlertEmail(user.email, cleanIp, null, userAgent, time).catch(err => {
+        console.error('Failed to send login alert email:', err.message);
     });
 };
 
