@@ -10,7 +10,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "worker": "node worker.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules RESEND_API_KEY=re_your_api_key_here jest --runInBand --forceExit"
+    "test": "JWT_SECRET=testsecret SANDBOX_BASE=./.sandbox_runs NODE_OPTIONS=--experimental-vm-modules RESEND_API_KEY=re_your_api_key_here jest --runInBand --forceExit"
   },
   "keywords": [],
   "author": "",
