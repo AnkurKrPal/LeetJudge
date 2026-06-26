@@ -1,26 +1,45 @@
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 
+const LIVE_CONTEST_MESSAGE = 'AI analysis is unavailable while a contest is in progress.';
+
 export default function AiAnalysisSection({ submissionId }) {
     const [analysis, setAnalysis] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [contestLive, setContestLive] = useState(false);
 
     useEffect(() => {
         if (!submissionId) return;
 
         let isMounted = true;
+
         const fetchAnalysis = async () => {
             setLoading(true);
             setError('');
+            setContestLive(false);
+
             try {
+                const liveRes = await api.get('/contests/live');
+                if (!isMounted) return;
+
+                if (liveRes.data?.isLive) {
+                    setContestLive(true);
+                    return;
+                }
+
                 const response = await api.get(`/submissions/${submissionId}/analyze`);
                 if (isMounted) {
                     setAnalysis(response.data.analysis);
                 }
             } catch (err) {
-                if (isMounted) {
-                    setError(err.response?.data?.error || 'Failed to analyze submission');
+                if (!isMounted) return;
+
+                const message = err.response?.data?.error || 'Failed to analyze submission';
+                if (message.includes('unavailable while a contest is in progress')) {
+                    setContestLive(true);
+                } else {
+                    setError(message);
                 }
             } finally {
                 if (isMounted) {
@@ -51,6 +70,14 @@ export default function AiAnalysisSection({ submissionId }) {
                         100% { opacity: 0.6; }
                     }
                 `}} />
+            </div>
+        );
+    }
+
+    if (contestLive) {
+        return (
+            <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius)', backgroundColor: 'var(--surface)', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                {LIVE_CONTEST_MESSAGE}
             </div>
         );
     }

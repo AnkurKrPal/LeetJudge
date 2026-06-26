@@ -18,7 +18,8 @@ import {
     submitContestSolution,
     getContestSubmissions,
 
-    getContestLeaderboard
+    getContestLeaderboard,
+    getLiveContestStatus
 } from '../controllers/contest.controller.js';
 
 const router = express.Router();
@@ -32,6 +33,9 @@ router.post('/', authenticate, requireRole(['ADMIN', 'PROBLEM_SETTER']), createC
 
 // Get All Contests
 router.get('/', optionalAuthenticate, getAllContests);
+
+// Live contest status (must be before /:contestId)
+router.get('/live', getLiveContestStatus);
 
 // Get Contest Details
 router.get('/:contestId', optionalAuthenticate, getContestById);

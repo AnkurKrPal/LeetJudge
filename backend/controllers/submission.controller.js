@@ -1,4 +1,13 @@
 import * as submissionService from '../services/submission.service.js';
+import * as contestRepo from '../repositories/contest.repository.js';
+
+const stripAiAnalysisIfContestLive = async (submission) => {
+    if (!submission?.ai_analysis) return submission;
+    const isLive = await contestRepo.hasLiveContest();
+    if (!isLive) return submission;
+    const { ai_analysis, ...rest } = submission;
+    return rest;
+};
 
 export const submitCode = async (req, res) => {
     try {
@@ -34,7 +43,8 @@ export const getSubmissionById = async (req, res) => {
              return res.status(403).json({ error: "Forbidden: Not your submission" });
         }
 
-        res.status(200).json({ submission });
+        const sanitizedSubmission = await stripAiAnalysisIfContestLive(submission);
+        res.status(200).json({ submission: sanitizedSubmission });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "An internal server error occurred" });
@@ -87,6 +97,9 @@ export const getAiAnalysis = async (req, res) => {
         res.status(200).json({ analysis });
     } catch (error) {
         console.error(error);
+        if (error.message.includes('unavailable while a contest is in progress')) {
+            return res.status(403).json({ error: error.message });
+        }
         const status = error.message.includes('still being judged') ? 400 : 500;
         res.status(status).json({ error: error.message || "An internal server error occurred" });
     }

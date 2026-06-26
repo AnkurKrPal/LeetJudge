@@ -19,6 +19,26 @@ export const findById = async (contestId) => {
     return result.rows[0];
 };
 
+export const findLiveContests = async () => {
+    const result = await query(
+        `SELECT id, name, start_time, end_time
+         FROM contests
+         WHERE start_time <= NOW() AND end_time >= NOW()
+         ORDER BY start_time ASC`
+    );
+    return result.rows;
+};
+
+export const hasLiveContest = async () => {
+    const result = await query(
+        `SELECT EXISTS(
+            SELECT 1 FROM contests
+            WHERE start_time <= NOW() AND end_time >= NOW()
+        ) AS active`
+    );
+    return result.rows[0].active;
+};
+
 export const updateContest = async (contestId, updates) => {
     const { name, description, is_public, format, start_time, end_time } = updates;
     const result = await query(

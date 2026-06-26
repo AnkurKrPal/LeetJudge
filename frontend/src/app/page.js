@@ -102,8 +102,7 @@ function HomeContent() {
     syncFiltersToUrl(tags, selectedDifficulty);
   };
 
-  const handleDifficultyChange = (e) => {
-    const diff = e.target.value;
+  const handleDifficultyChange = (diff) => {
     setSelectedDifficulty(diff);
     syncFiltersToUrl(selectedFilters, diff);
   };
@@ -166,28 +165,12 @@ function HomeContent() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <h1 style={{ fontSize: '1.5rem', marginBottom: '0' }}>Problem Set</h1>
-          <ProblemTagFilter selectedTags={selectedFilters} onChange={handleFilterChange} />
-          <select 
-            value={selectedDifficulty} 
-            onChange={handleDifficultyChange}
-            style={{
-              padding: '0.5rem 0.875rem',
-              borderRadius: 'var(--radius)',
-              border: `1px solid ${selectedDifficulty ? 'var(--primary)' : 'var(--border-color)'}`,
-              backgroundColor: selectedDifficulty ? 'rgba(0, 122, 255, 0.05)' : 'var(--surface)',
-              color: selectedDifficulty ? 'var(--primary)' : 'var(--text-main)',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              outline: 'none',
-              appearance: 'none',
-            }}
-          >
-            <option value="">All Difficulties</option>
-            <option value="EASY">Easy</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HARD">Hard</option>
-          </select>
+          <ProblemTagFilter
+            selectedTags={selectedFilters}
+            onChange={handleFilterChange}
+            selectedDifficulty={selectedDifficulty}
+            onDifficultyChange={handleDifficultyChange}
+          />
         </div>
         {user && (user.role === 'ADMIN' || user.role === 'PROBLEM_SETTER') && (
           <Link href="/problems/create" style={{
@@ -213,7 +196,7 @@ function HomeContent() {
             type="button"
             onClick={() => {
               handleFilterChange([]);
-              handleDifficultyChange({ target: { value: '' } });
+              handleDifficultyChange('');
             }}
             style={{
               display: 'block',

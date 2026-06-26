@@ -403,3 +403,11 @@ async (
         contestId
     );
 };
+
+export const isLiveContestActiveService = async () => {
+    const contests = await contestdb.findLiveContests();
+    return {
+        isLive: contests.length > 0,
+        contests,
+    };
+};

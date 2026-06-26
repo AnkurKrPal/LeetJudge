@@ -2,6 +2,7 @@
 // Pattern: Service Layer pattern - orchestrates business logic for submission lifecycle
 import * as submissionRepo from '../repositories/submission.repository.js';
 import * as problemRepo from '../repositories/problem.repository.js';
+import * as contestRepo from '../repositories/contest.repository.js';
 import { enqueueSubmission } from '../queue/redis.queue.js';
 import logger from '../utils/logger.js';
 import { AiAnalyzerContext } from './aiAnalyzer/aiAnalyzer.context.js';
@@ -50,7 +51,16 @@ export const getUserSubmissionsForProblemService = async (userId, problemId) => 
     return submissionRepo.findByUserAndProblem(userId, problemId);
 };
 
+const assertAiAnalysisAllowed = async () => {
+    const isLive = await contestRepo.hasLiveContest();
+    if (isLive) {
+        throw new Error('AI analysis is unavailable while a contest is in progress');
+    }
+};
+
 export const getAiAnalysisForSubmissionService = async (submissionId) => {
+    await assertAiAnalysisAllowed();
+
     const submission = await submissionRepo.findById(submissionId);
     if (!submission) {
         throw new Error('Submission not found');

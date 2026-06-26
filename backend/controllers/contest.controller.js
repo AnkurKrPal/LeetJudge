@@ -11,7 +11,8 @@ import {
     editContestProblemsService,
     submitContestSolutionService,
     getContestSubmissionsService,
-    getContestLeaderboardService
+    getContestLeaderboardService,
+    isLiveContestActiveService
 } from '../services/contest.service.js';
 
 export const createContest = async (req, res) => {
@@ -154,6 +155,15 @@ export const getContestLeaderboard = async (req, res) => {
     try {
         const leaderboard = await getContestLeaderboardService(req.params.contestId);
         res.status(200).json(leaderboard);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const getLiveContestStatus = async (req, res) => {
+    try {
+        const status = await isLiveContestActiveService();
+        res.status(200).json(status);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
