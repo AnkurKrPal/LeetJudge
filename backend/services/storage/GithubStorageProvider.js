@@ -98,9 +98,13 @@ export class GithubStorageProvider extends StorageProvider {
             throw new Error(`Failed to fetch image from GitHub: ${response.statusText}`);
         }
 
+        // Always determine content-type from file extension.
+        // GitHub's raw API returns 'application/octet-stream' which browsers won't render as images.
+        const contentType = getMimeTypeFromPath(filePath);
+
         return {
             buffer: Buffer.from(response.data),
-            contentType: response.headers['content-type'] || getMimeTypeFromPath(filePath),
+            contentType: contentType !== 'application/octet-stream' ? contentType : (response.headers['content-type'] || 'image/png'),
         };
     }
 

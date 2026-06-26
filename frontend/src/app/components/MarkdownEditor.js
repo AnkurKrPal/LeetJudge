@@ -263,7 +263,7 @@ export default function MarkdownEditor({ value, onChange, placeholder = "Write y
                 justifyContent: 'center',
                 group: 'true'
               }}>
-                <img src={finalSrc} alt={img.altText} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                <img src={finalSrc} alt={img.altText} referrerPolicy="no-referrer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 <button
                   type="button"
                   onClick={() => handleDeleteImage(img)}
