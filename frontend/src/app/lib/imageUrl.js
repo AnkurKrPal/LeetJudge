@@ -10,10 +10,5 @@ export function resolveImageUrl(src) {
     return `${baseUrl}${src}`;
   }
 
-  const rawGithubMatch = src.match(RAW_GITHUB_URL_PATTERN);
-  if (rawGithubMatch) {
-    return `${baseUrl}/api/images/${rawGithubMatch[1]}`;
-  }
-
   return src;
 }

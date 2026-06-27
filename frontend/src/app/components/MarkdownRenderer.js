@@ -13,7 +13,7 @@ export default function MarkdownRenderer({ content }) {
         components={{
           img: ({node, src, ...props}) => {
             const finalSrc = resolveImageUrl(src);
-            return <img src={finalSrc} style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} {...props} />;
+            return <img src={finalSrc} referrerPolicy="no-referrer" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} {...props} />;
           },
           table: ({node, ...props}) => (
             <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
